@@ -38,7 +38,8 @@ void concurrency_test(stack<int> *stk, size_t num_pop_threads,
             pop_ready[i].set_value();
             go.wait();
             for (size_t j=0;j<num_ops;j++) {
-                EXPECT_NE(nullptr, stk->pop());
+                // EXPECT_NE(nullptr, stk->pop());
+                stk->pop();
             }
         });
     }
@@ -65,32 +66,31 @@ void concurrency_test(stack<int> *stk, size_t num_pop_threads,
 }
 
 TEST(LockFreeStack_gc, Basic) {
-    std::unique_ptr<stack<int>> stk{new stack_gc<int>{}};
-    basic_test(stk.get());
+    stack_gc<int> stk;
+    basic_test(&stk);
 }
 
 TEST(LockFreeStack_gc, ConcurrentPop) {
-    std::unique_ptr<stack<int>> stk{new stack_gc<int>{}};
-    concurrency_test(stk.get(), 30, 0, 10000);
+    stack_gc<int> stk;
+    concurrency_test(&stk, 30, 0, 1000);
 }
 
 TEST(LockFreeStack_gc, Concurrency) {
-    std::unique_ptr<stack_gc<int>> stk{new stack_gc<int>{}};
-    concurrency_test(stk.get(), 20, 20, 10000);
-    // ASSERT_EQ(stk->nodes_created.load(), stk->nodes_deleted.load());
+    stack_gc<int> stk;
+    concurrency_test(&stk, 20, 20, 1000);
 }
 
-TEST(LockFreeStack_hp, DISABLED_Basic) {
-    std::unique_ptr<stack<int>> stk{new stack_hp<int>{}};
-    basic_test(stk.get());
+TEST(LockFreeStack_hp, Basic) {
+    stack_hp<int> stk;
+    basic_test(&stk);
 }
 
-TEST(LockFreeStack_hp, DISABLED_ConcurrentPop) {
-    std::unique_ptr<stack<int>> stk{new stack_hp<int>{}};
-    concurrency_test(stk.get(), 30, 0, 10000);
+TEST(LockFreeStack_hp, ConcurrentPop) {
+    stack_hp<int> stk;
+    concurrency_test(&stk, 30, 0, 1000);
 }
 
-TEST(LockFreeStack_hp, DISABLED_Concurrency) {
-    std::unique_ptr<stack<int>> stk{new stack_hp<int>{}};
-    concurrency_test(stk.get(), 20, 20, 10000);
+TEST(LockFreeStack_hp, Concurrency) {
+    stack_hp<int> stk;
+    concurrency_test(&stk, 20, 20, 1000);
 }

@@ -29,7 +29,7 @@ endif()
 set(VALGRIND_OPTIONS
         --error-exitcode=1
         --leak-check=full
-        --soname-synonyms=somalloc=*jemalloc*
+        # --soname-synonyms=somalloc=*jemalloc*
         --trace-children=yes
         --track-origins=yes
         )

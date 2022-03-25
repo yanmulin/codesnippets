@@ -16,7 +16,7 @@ public:
         }
     }
 
-    virtual std::shared_ptr<T> pop() override {
+    std::shared_ptr<T> pop() override {
         std::atomic<void*>& hp = hp_manager_.get_hazard_pointer_for_current_thread();
         Node *old_head = head_.load();
         do {
@@ -41,7 +41,7 @@ public:
         return res;
     }
 
-    virtual void push(const T &data) override {
+    void push(const T &data) override {
         Node *new_head = new Node(data);
         new_head->next = head_.load();
         while (!head_.compare_exchange_strong(new_head->next, new_head));

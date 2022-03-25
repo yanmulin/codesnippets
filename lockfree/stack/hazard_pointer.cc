@@ -14,7 +14,6 @@ hazard_pointer_manager::hazard_pointer_manager(): to_be_reclaimed_(nullptr) {
 hazard_pointer_manager::~hazard_pointer_manager() {
     assert(to_be_reclaimed_.load() == nullptr);
     for (size_t i=0;i<MAX_HAZARD_POINTERS;i++) {
-        assert(hps_[i].id.load() == std::thread::id{});
         assert(hps_[i].ptr.load() == nullptr);
     }
 }
