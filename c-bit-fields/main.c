@@ -2,22 +2,22 @@
 
 struct {
     unsigned short a:1;
-} A1;
+} A;
 
 struct {
     unsigned int b:1;
-} B1;
+} B;
 
 struct {
     unsigned short a:1;
     unsigned int b:1;
-} A1B1;
+} AB;
 
 struct {
     unsigned short a:8;
     unsigned short b:4;
     unsigned short c:1;
-} A8B4C1;
+} ABC;
 
 int main() {
     printf("sizeof(A)=%lu\n", sizeof(A));
