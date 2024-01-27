@@ -1,0 +1,8 @@
+services:
+  flags_server:
+    image: nginx:stable-alpine
+    ports:
+      - 8080:80
+    volumes:
+      - ./flags:/var/www/flags/
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
