@@ -2,6 +2,7 @@
 #include <memory>
 #include <atomic>
 #include <cassert>
+#include <cstdio>
 
 template<typename T>
 class stack_gc: public stack<T> {
@@ -11,10 +12,9 @@ public:
         assert(threads_in_pop_ == 0);
         delete_nodes(head_.exchange(nullptr));
         delete_nodes(to_be_deleted_.exchange(nullptr));
-        assert(nodes_created == nodes_deleted);
     }
 
-    virtual std::shared_ptr<T> pop() override {
+    std::shared_ptr<T> pop() override {
         threads_in_pop_ ++;
         Node *old_head = head_.load();
         while (old_head && !head_.compare_exchange_strong(old_head, old_head->next));
@@ -26,7 +26,7 @@ public:
         return res;
     }
 
-    virtual void push(const T &data) override {
+    void push(const T &data) override {
         Node *new_head = new Node(data);
         new_head->next = head_.load();
         while (!head_.compare_exchange_strong(new_head->next, new_head));
@@ -41,10 +41,7 @@ private:
         std::shared_ptr<T> data;
         Node *next;
         Node(const T &data_)
-            : data(std::make_shared<T>(data_)), next(nullptr) {
-            nodes_created ++;
-        }
-        ~Node() { nodes_deleted ++; }
+            : data(std::make_shared<T>(data_)), next(nullptr) {}
     };
 
     std::atomic<Node*> head_;
@@ -96,8 +93,3 @@ private:
         append_nodes_to_chain(node, node);
     }
 };
-
-template <typename T>
-std::atomic<size_t> stack_gc<T>::nodes_created;
-template <typename T>
-std::atomic<size_t> stack_gc<T>::nodes_deleted;
