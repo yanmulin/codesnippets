@@ -1,3 +1,5 @@
+package io.yanmulin.codesnippets.http;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
