@@ -20,13 +20,17 @@ public class DriverManagerExamples {
         String username = properties.getProperty(Constants.JDBC_USERNAME_CONFIG_KEY);
         String password = properties.getProperty(Constants.JDBC_PASSWORD_CONFIG_KEY);
         Connection connection = DriverManager.getConnection(url, username, password);
-        CallableStatement statement = connection.prepareCall("SELECT * FROM student");
-        ResultSet rs = statement.executeQuery();
-        while (rs.next()) {
-            Long id = rs.getLong(1);
-            String name = rs.getString(2);
-            Integer age = rs.getInt(3);
-            System.out.println("row " + rs.getRow() + ": " + new Student(id, name, age));
+        try {
+            CallableStatement statement = connection.prepareCall("SELECT * FROM student");
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                Long id = rs.getLong(1);
+                String name = rs.getString(2);
+                Integer age = rs.getInt(3);
+                System.out.println("row " + rs.getRow() + ": " + new Student(id, name, age));
+            }
+        } finally {
+            connection.close();
         }
     }
 
