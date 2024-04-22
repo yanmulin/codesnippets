@@ -1,9 +1,8 @@
-package io.yanmulin.codesnippets.templates.dao;
+package io.yanmulin.codesnippets.sql.templates.dao;
 
-import io.yanmulin.codesnippets.templates.JdbcTemplate;
-import io.yanmulin.codesnippets.templates.mapper.IRowMapper;
-import io.yanmulin.codesnippets.templates.models.Student;
-import io.yanmulin.codesnippets.templates.models.Teacher;
+import io.yanmulin.codesnippets.sql.templates.JdbcTemplate;
+import io.yanmulin.codesnippets.sql.templates.mapper.IRowMapper;
+import io.yanmulin.codesnippets.sql.models.Teacher;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

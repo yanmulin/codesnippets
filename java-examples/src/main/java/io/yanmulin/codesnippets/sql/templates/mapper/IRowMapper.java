@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.templates.mapper;
+package io.yanmulin.codesnippets.sql.templates.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

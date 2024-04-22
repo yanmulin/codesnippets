@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.templates.models;
+package io.yanmulin.codesnippets.sql.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

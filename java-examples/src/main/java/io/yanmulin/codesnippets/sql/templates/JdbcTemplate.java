@@ -1,8 +1,8 @@
-package io.yanmulin.codesnippets.templates;
+package io.yanmulin.codesnippets.sql.templates;
 
 
-import io.yanmulin.codesnippets.templates.mapper.IRowMapper;
-import io.yanmulin.codesnippets.templates.util.JdbcUtils;
+import io.yanmulin.codesnippets.sql.templates.util.JdbcUtils;
+import io.yanmulin.codesnippets.sql.templates.mapper.IRowMapper;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
