@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.threading;
+package io.yanmulin.codesnippets.basic;
 
 import lombok.extern.slf4j.Slf4j;
 
