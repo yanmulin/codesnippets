@@ -1,6 +1,7 @@
 import unittest
 from abc import ABC, abstractmethod
-from typing import override, List
+from typing import List
+
 
 class UnresolvedPlaceholder(BaseException):
     def __init__(self, text):
