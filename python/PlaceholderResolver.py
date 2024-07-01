@@ -52,7 +52,7 @@ class TextPart:
 
 
 @Part.register
-class SimplePlaceholderPart(Part):
+class SimplePlaceholderPart:
     def __init__(self, text: str, key: str, fallback: str):
         self.text = text
         self.key = key
@@ -67,7 +67,7 @@ class SimplePlaceholderPart(Part):
 
 
 @Part.register
-class NestedPlaceholderPart(Part):
+class NestedPlaceholderPart:
     def __init__(self, text, parts: List[Part], defaults):
         self.text = text
         self.parts = parts
