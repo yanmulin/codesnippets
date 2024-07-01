@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.spring.aop.spring.web.controller;
+package io.yanmulin.codesnippets.spring.web.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

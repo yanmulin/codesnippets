@@ -8,7 +8,7 @@
 		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>io.yanmulin.codesnippets</groupId>
+	<groupId>io.yanmulin.codesnippets.spring</groupId>
 	<artifactId>spring-examples</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -17,7 +17,10 @@
     <modules>
         <module>web-example</module>
 		<module>ioc-example</module>
-	</modules>
+		<module>gateway-examples</module>
+		<module>aop-examples</module>
+        <module>data-examples</module>
+    </modules>
     <properties>
 		<java.version>17</java.version>
 	</properties>

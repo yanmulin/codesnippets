@@ -1,8 +1,8 @@
-package io.yanmulin.codesnippets.spring.aop.spring.ioc.movies;
+package io.yanmulin.codesnippets.spring.ioc.movies;
 
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.Movie;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.MovieFinder;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.MovieLister;
+import io.yanmulin.codesnippets.spring.ioc.Movie;
+import io.yanmulin.codesnippets.spring.ioc.MovieFinder;
+import io.yanmulin.codesnippets.spring.ioc.MovieLister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

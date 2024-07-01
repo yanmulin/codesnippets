@@ -4,10 +4,10 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="movieFinder" class="io.yanmulin.codesnippets.impl.CSVMovieFinderImpl">
+    <bean id="movieFinder" class="io.yanmulin.codesnippets.spring.ioc.movies.CSVMovieFinderImpl">
         <property name="filename"><value>${csv.movies}</value></property>
     </bean>
-    <bean id="movieLister" class="io.yanmulin.codesnippets.impl.MovieListerImpl">
+    <bean id="movieLister" class="io.yanmulin.codesnippets.spring.ioc.movies.MovieListerImpl">
         <constructor-arg ref="movieFinder"/>
     </bean>
 

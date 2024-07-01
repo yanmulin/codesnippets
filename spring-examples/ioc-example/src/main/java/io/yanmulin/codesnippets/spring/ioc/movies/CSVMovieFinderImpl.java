@@ -1,7 +1,7 @@
-package io.yanmulin.codesnippets.spring.aop.spring.ioc.movies;
+package io.yanmulin.codesnippets.spring.ioc.movies;
 
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.Movie;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.MovieFinder;
+import io.yanmulin.codesnippets.spring.ioc.Movie;
+import io.yanmulin.codesnippets.spring.ioc.MovieFinder;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,9 +14,17 @@ import java.util.List;
 public class CSVMovieFinderImpl implements MovieFinder {
     private static final String CSV_DELIMITER = ",";
     private static final String LIST_ITEM_DELIMITER = "/";
-    @Setter
+
     @Value("/movies.csv")
     private String filename;
+
+    public CSVMovieFinderImpl() {
+
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
     public List<Movie> findAll() {
         List<Movie> results = new ArrayList<>();

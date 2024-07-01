@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="primaryDataSource" class="io.yanmulin.codesnippets.spring.aop.target.DataSource">
+        <constructor-arg><null/></constructor-arg>
+    </bean>
+    <bean id="secondaryDataSource" class="io.yanmulin.codesnippets.spring.aop.target.DataSource">
+        <constructor-arg>
+            <value>hello</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="hotSwapTarget" class="org.springframework.aop.target.HotSwappableTargetSource">
+        <constructor-arg>
+            <ref bean="primaryDataSource"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="dataSourceThrowsAdvice" class="io.yanmulin.codesnippets.spring.aop.advices.DataSourceThrowsAdvice">
+        <property name="primary">
+            <ref bean="primaryDataSource"/>
+        </property>
+        <property name="secondary">
+            <ref bean="secondaryDataSource"/>
+        </property>
+        <property name="targetSource">
+            <ref bean="hotSwapTarget"/>
+        </property>
+    </bean>
+
+    <bean id="swapThrowsAdvisor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor">
+        <property name="advice">
+            <ref bean="dataSourceThrowsAdvice"/>
+        </property>
+        <property name="mappedName">
+            <value>read</value>
+        </property>
+    </bean>
+
+    <bean id="dataSource" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="targetSource">
+            <ref bean="hotSwapTarget"/>
+        </property>
+
+        <property name="interceptorNames">
+            <list>
+                <value>swapThrowsAdvisor</value>
+            </list>
+        </property>
+    </bean>
+</beans>

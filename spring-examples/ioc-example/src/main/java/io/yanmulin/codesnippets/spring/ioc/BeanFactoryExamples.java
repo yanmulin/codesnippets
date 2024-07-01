@@ -1,10 +1,10 @@
-package io.yanmulin.codesnippets.spring.aop.spring.ioc;
+package io.yanmulin.codesnippets.spring.ioc;
 
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.circular.PrototypeServiceAImpl;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.circular.SingletonServiceAImpl;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.messages.SayHello;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.movies.CSVMovieFinderImpl;
-import io.yanmulin.codesnippets.spring.aop.spring.ioc.movies.MovieListerImpl;
+import io.yanmulin.codesnippets.spring.ioc.circular.PrototypeServiceAImpl;
+import io.yanmulin.codesnippets.spring.ioc.circular.SingletonServiceAImpl;
+import io.yanmulin.codesnippets.spring.ioc.messages.SayHello;
+import io.yanmulin.codesnippets.spring.ioc.movies.CSVMovieFinderImpl;
+import io.yanmulin.codesnippets.spring.ioc.movies.MovieListerImpl;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -55,7 +55,7 @@ public class BeanFactoryExamples {
 
     public void getBean() {
 //        BeanFactory beanFactory = placeholder();
-        BeanFactory beanFactory = autoScan();
+        BeanFactory beanFactory = xml();
         MovieLister movieLister = beanFactory.getBean(MovieLister.class);
         System.out.println(movieLister.listAll());
     }
@@ -87,8 +87,8 @@ public class BeanFactoryExamples {
     }
 
     public static void main(String[] args) {
-        new BeanFactoryExamples().getBean();
-//        new BeanFactoryExamples().circularSingleton();
+//        new BeanFactoryExamples().getBean();
+        new BeanFactoryExamples().circularSingleton();
 //        new BeanFactoryExamples().circularPrototype();
 //        new BeanFactoryExamples().messageSource();
 //        new BeanFactoryExamples().loadMany();

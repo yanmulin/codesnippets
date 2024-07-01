@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.spring.aop.spring.web.interceptor;
+package io.yanmulin.codesnippets.spring.web.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

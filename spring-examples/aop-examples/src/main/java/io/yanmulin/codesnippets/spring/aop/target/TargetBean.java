@@ -1,15 +1,9 @@
-package io.yanmulin.codesnippets.spring.aop;
+package io.yanmulin.codesnippets.spring.aop.target;
 
-import org.springframework.stereotype.Component;
-
-@Component
-public class TargetBean implements ITarget {
-    public void printMessage(String message) {
-        System.out.println("execute target printing " + message);
-    }
-
-    public void throwException(RuntimeException exception) {
-        System.out.println("execute target throwing " + exception);
-        throw exception;
+public class TargetBean implements IExecute {
+    @Override
+    public void execute(String message, RuntimeException exception) {
+        System.out.println("TargetBean.execute(message=\"" + message + "\", ex=" +  exception + ")");
+        if (exception != null) throw exception;
     }
 }

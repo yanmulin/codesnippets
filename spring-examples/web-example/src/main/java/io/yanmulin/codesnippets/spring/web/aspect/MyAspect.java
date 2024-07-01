@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.spring.aop.spring.web.aspect;
+package io.yanmulin.codesnippets.spring.web.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;

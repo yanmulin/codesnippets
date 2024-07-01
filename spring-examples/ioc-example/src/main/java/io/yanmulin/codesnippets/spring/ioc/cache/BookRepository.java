@@ -1,8 +1,9 @@
 package io.yanmulin.codesnippets.spring.ioc.cache;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
-public class SimpleBookRepository {
+public class BookRepository {
 
     @Cacheable("books")
     public Book getByIsbn(String isbn) {
@@ -14,7 +15,8 @@ public class SimpleBookRepository {
         return new Book(isbn, "some book");
     }
 
-    public void update() {
-
+    @CacheEvict("books")
+    public void update(String isbn) {
+        System.out.println("updated book " + isbn);
     }
 }

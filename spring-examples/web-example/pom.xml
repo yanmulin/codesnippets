@@ -4,13 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>io.yanmulin.codesnippets</groupId>
+        <groupId>io.yanmulin.codesnippets.spring</groupId>
         <artifactId>spring-examples</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.yanmulin.codesnippets</groupId>
-    <artifactId>spring-web-example</artifactId>
+    <artifactId>web-example</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

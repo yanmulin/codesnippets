@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.spring.aop.spring.web;
+package io.yanmulin.codesnippets.spring.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.spring.aop.spring.gateway;
+package io.yanmulin.codesnippets.spring.gateway;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
