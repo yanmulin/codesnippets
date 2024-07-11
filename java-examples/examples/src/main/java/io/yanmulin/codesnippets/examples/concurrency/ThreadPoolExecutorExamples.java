@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.examples.basic;
+package io.yanmulin.codesnippets.examples.concurrency;
 
 import lombok.extern.slf4j.Slf4j;
 
