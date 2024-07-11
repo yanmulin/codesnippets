@@ -3,121 +3,141 @@ import functools
 import unittest
 
 
-class CronFieldType:
+class ChronoUtils:
+    # _FIELD_RANKS = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond')
+    _FIELD_RANKS = ('microsecond', 'second', 'minute', 'hour', 'day', 'month', 'year')
 
-    _FIELD_RANKS = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond')
+    _MONTH_DAYS_COUNT = (0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
     _FIELD_RANGES = {
         'month': (1, 12), 'day': (1, 31), 'weekday': (0, 6), 
         'hour': (0, 23), 'minute': (0, 59), 'second': (0, 59),
         'microsecond': (0, 999999),
     }
 
-    FIELD = None
-    RANK_FIELD = None
-
-    @classmethod
-    def _field_range_min(cls, field):
-        return cls._FIELD_RANGES[field][0]
+    @staticmethod
+    def _is_leap_year(year):
+        if year % 100 == 0: return False
+        if year % 4 == 0: return True
+        return False
     
     @classmethod
-    def _field_range_max(cls, field):
-        return cls._FIELD_RANGES[field][1]
+    def field(cls, rank):
+        return cls._FIELD_RANKS[rank]
 
-    @property
-    def lower_ranked_fields(self):
-        field = self.RANK_FIELD or self.FIELD
-        index = self._FIELD_RANKS.index(field)
-        return self._FIELD_RANKS[index+1:]
+    @classmethod
+    def field_rank(cls, field):
+        if field not in cls._FIELD_RANKS:
+            return None
+        return cls._FIELD_RANKS.index(field)
+
+    @classmethod
+    def lower_ranked_fields(cls, rank):
+        return cls._FIELD_RANKS[:rank]
+    
+    @classmethod
+    def higher_ranked_fields(cls, rank):
+        return cls._FIELD_RANKS[rank+1:]
+
+    @classmethod
+    def field_range(cls, field):
+        return cls._FIELD_RANGES[field]
+    
+    @classmethod
+    def add_timedelta(cls, dt: datetime, field, delta):
+        if field == 'month':
+            month = getattr(dt, field) + delta
+            year = dt.year + month // cls.field_range(field)[1]
+            month = month % cls.field_range(field)[1]
+            kwargs = {'month': month, 'year': year}
+            return dt.replace(**kwargs)
+        elif field == 'year':
+            return dt.replace(year=dt.year + delta)
+        
+        kwargs = {field + 's': delta}
+        return dt + timedelta(**kwargs)
+    
+    @classmethod
+    def month_days(cls, year, month):
+        if month == 2:
+            return 29 if cls._is_leap_year(year) else 28
+        return cls._MONTH_DAYS_COUNT[month]
+        
+
+class CronFieldType:
+
+    FIELD = None
 
     @property
     def range(self):
-        return (self._field_range_min(self.FIELD), self._field_range_max(self.FIELD))
+        return ChronoUtils.field_range(self.FIELD)
 
     def get(self, dt: datetime):
         return getattr(dt, self.FIELD)
     
     def round_up(self, dt: datetime):
-        raise NotImplementedError()
+        rank = ChronoUtils.field_rank(self.FIELD)
+        return self.reset(ChronoUtils.add_timedelta(dt, ChronoUtils.field(rank+1), 1))
     
     def elapse_to(self, dt: datetime, next_: int):
         if next_ == self.get(dt):
             return dt
         if next_ < self.get(dt):
             dt = self.round_up(dt)
+        while self.FIELD == 'day' and next_ > ChronoUtils.month_days(dt.year, dt.month):
+            dt = self.round_up(dt)
 
-        kwargs = {field: self._field_range_min(field) 
-                  for field in self.lower_ranked_fields}
+        rank = ChronoUtils.field_rank(self.FIELD)
+        kwargs = {field: ChronoUtils.field_range(field)[0]
+                  for field in ChronoUtils.lower_ranked_fields(rank)}
         kwargs[self.FIELD] = next_
         return dt.replace(**kwargs)
     
     def reset(self, dt, **extra):
-        kwargs = {field: self._field_range_min(field) for field in self.lower_ranked_fields}
-        if self.FIELD is not None and self.FIELD in self._FIELD_RANKS:
-            kwargs[self.FIELD] = self.range[0]
+        kwargs = {self.FIELD: self.range[0]}
+        return self._reset_lower_ranked(dt, self.FIELD, **kwargs)
+    
+    def _reset_lower_ranked(self, dt, field, **extra):
+        day_rank = ChronoUtils.field_rank(field)
+        kwargs = {field: ChronoUtils.field_range(field)[0] 
+                  for field in ChronoUtils.lower_ranked_fields(day_rank)}
         return dt.replace(**kwargs, **extra)
 
 
 class SecondCronFieldType(CronFieldType):
     FIELD = 'second'
-    TIMEDELTA = timedelta(minutes=1)
-
-    def round_up(self, dt: datetime):
-        return self.reset(dt + self.TIMEDELTA)
 
 
 class MinuteCronFieldType(CronFieldType):
     FIELD = 'minute'
-    TIMEDELTA = timedelta(hours=1)
-
-    def round_up(self, dt: datetime):
-        return self.reset(dt + self.TIMEDELTA)
 
 
 class HourCronFieldType(CronFieldType):
     FIELD = 'hour'
-    TIMEDELTA = timedelta(days=1)
-
-    def round_up(self, dt: datetime):
-        return self.reset(dt + self.TIMEDELTA)
 
 
 class DayOfMonthCronFieldType(CronFieldType):
     FIELD = 'day'
-
-    _MONTH_DAYS_COUNT = (0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-
-    def _month_days_count(self, year, month):
-        if month == 2 and year % 100 == 0:
-            return 28
-        if month == 2 and year % 4 == 0:
-            return 29
-        return self._MONTH_DAYS_COUNT[month]
     
-    def elapse_to(self, dt: datetime, next_: int):
-        while next_ > self._month_days_count(dt.year, dt.month):
-            dt = self.round_up(dt)
+    # def elapse_to(self, dt: datetime, next_: int):
+    #     while next_ > self._month_days_count(dt.year, dt.month):
+    #         dt = self.round_up(dt)
         
-        return super().elapse_to(dt, next_)
+    #     return super().elapse_to(dt, next_)
     
-    def round_up(self, dt: datetime):
-        if dt.month == 12:
-            return self.reset(dt, year=dt.year+1, month=self._field_range_min('month'))
-        else:
-            return self.reset(dt, month=dt.month+1)
+    # def round_up(self, dt: datetime):
+    #     if dt.month == 12:
+    #         return self.reset(dt, year=dt.year+1, month=self._field_range_min('month'))
+    #     else:
+    #         return self.reset(dt, month=dt.month+1)
     
 
 class MonthCronFieldType(CronFieldType):
     FIELD = 'month'
-    TIMEDELTA = timedelta(days=365)
-
-    def round_up(self, dt: datetime):
-        return self.reset(dt, year=dt.year+1)
 
 
 class DayOfWeekCronFieldType(CronFieldType):
     FIELD = 'weekday'
-    RANK_FIELD = 'day'
-    TIMEDELTA = timedelta(days=7)
 
     def get(self, dt: datetime):
         return dt.weekday()
@@ -126,9 +146,16 @@ class DayOfWeekCronFieldType(CronFieldType):
         return self.elapse_to(dt, self.range[0])
     
     def elapse_to(self, dt: datetime, next_: int):
-        weekdays = self.range[1] - self.range[0] + 1
-        delta = (next_ - self.get(dt) + weekdays) % weekdays
-        return self.reset(dt + timedelta(days=delta))
+        days_a_week = self.range[1] - self.range[0] + 1
+        delta = (next_ - self.get(dt) + days_a_week) % days_a_week
+
+        if delta <= 0: return dt
+        new_dt = ChronoUtils.add_timedelta(dt, 'day', delta)
+        return self._reset_lower_ranked(new_dt, 'day')
+    
+    def reset(self, dt, **extra):
+        new_dt = ChronoUtils.add_timedelta(dt, 'day', -self.get(dt))
+        return self._reset_lower_ranked(new_dt, 'day', **extra)
 
 
 class CronField:
@@ -319,6 +346,63 @@ class CronExpression:
         if expression is None:
             raise ValueError('invalid expression(None) ')
         return cls(expression)
+
+
+
+class CronFieldTypeTest(unittest.TestCase):
+    def test_second(self):
+        cft = SecondCronFieldType()
+        dt = datetime.fromisoformat('2024-07-01 15:30:12')
+        self.assertEqual(cft.get(dt), 12)
+        self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-07-01 15:30:00'))
+        self.assertEqual(cft.elapse_to(dt, 25), datetime.fromisoformat('2024-07-01 15:30:25'))
+        self.assertEqual(cft.elapse_to(dt, 5), datetime.fromisoformat('2024-07-01 15:31:05'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2024-07-01 15:31:00'))
+    
+    def test_minute(self):
+        cft = MinuteCronFieldType()
+        dt = datetime.fromisoformat('2024-07-01 15:31:12')
+        self.assertEqual(cft.get(dt), 31)
+        self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-07-01 15:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 35), datetime.fromisoformat('2024-07-01 15:35:00'))
+        self.assertEqual(cft.elapse_to(dt, 15), datetime.fromisoformat('2024-07-01 16:15:00'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2024-07-01 16:00:00'))
+
+    def test_hour(self):
+        cft = HourCronFieldType()
+        dt = datetime.fromisoformat('2024-07-01 15:31:12')
+        self.assertEqual(cft.get(dt), 15)
+        self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-07-01 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 18), datetime.fromisoformat('2024-07-01 18:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 11), datetime.fromisoformat('2024-07-02 11:00:00'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2024-07-02 00:00:00'))
+
+    def test_day_of_month(self):
+        cft = DayOfMonthCronFieldType()
+        dt = datetime.fromisoformat('2024-07-05 15:31:12')
+        self.assertEqual(cft.get(dt), 5)
+        self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-07-01 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 18), datetime.fromisoformat('2024-07-18 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 3), datetime.fromisoformat('2024-08-03 00:00:00'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2024-08-01 00:00:00'))
+
+    def test_month(self):
+        cft = MonthCronFieldType()
+        dt = datetime.fromisoformat('2024-07-05 15:31:12')
+        # self.assertEqual(cft.get(dt), 7)
+        # self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-01-01 00:00:00'))
+        # self.assertEqual(cft.elapse_to(dt, 11), datetime.fromisoformat('2024-11-01 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 3), datetime.fromisoformat('2025-03-01 00:00:00'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2025-01-01 00:00:00'))
+
+    def test_day_of_week(self):
+        cft = DayOfWeekCronFieldType()
+        dt = datetime.fromisoformat('2024-06-06 15:31:12')
+        self.assertEqual(cft.get(dt), 3)
+        self.assertEqual(cft.reset(dt), datetime.fromisoformat('2024-06-03 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 6), datetime.fromisoformat('2024-06-09 00:00:00'))
+        self.assertEqual(cft.elapse_to(dt, 2), datetime.fromisoformat('2024-06-12 00:00:00'))
+        self.assertEqual(cft.round_up(dt), datetime.fromisoformat('2024-06-10 00:00:00'))
 
 
 class CronFieldTests(unittest.TestCase):
