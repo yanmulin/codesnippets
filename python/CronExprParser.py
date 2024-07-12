@@ -4,7 +4,6 @@ import unittest
 
 
 class ChronoUtils:
-    # _FIELD_RANKS = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond')
     _FIELD_RANKS = ('microsecond', 'second', 'minute', 'hour', 'day', 'month', 'year')
 
     _MONTH_DAYS_COUNT = (0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -87,14 +86,11 @@ class CronFieldType:
         while self.FIELD == 'day' and next_ > ChronoUtils.month_days(dt.year, dt.month):
             dt = self.round_up(dt)
 
-        rank = ChronoUtils.field_rank(self.FIELD)
-        kwargs = {field: ChronoUtils.field_range(field)[0]
-                  for field in ChronoUtils.lower_ranked_fields(rank)}
-        kwargs[self.FIELD] = next_
-        return dt.replace(**kwargs)
+        kwargs = { self.FIELD: next_ }
+        return self._reset_lower_ranked(dt, self.FIELD, **kwargs)
     
     def reset(self, dt, **extra):
-        kwargs = {self.FIELD: self.range[0]}
+        kwargs = {self.FIELD: self.range[0], **extra}
         return self._reset_lower_ranked(dt, self.FIELD, **kwargs)
     
     def _reset_lower_ranked(self, dt, field, **extra):
@@ -118,18 +114,6 @@ class HourCronFieldType(CronFieldType):
 
 class DayOfMonthCronFieldType(CronFieldType):
     FIELD = 'day'
-    
-    # def elapse_to(self, dt: datetime, next_: int):
-    #     while next_ > self._month_days_count(dt.year, dt.month):
-    #         dt = self.round_up(dt)
-        
-    #     return super().elapse_to(dt, next_)
-    
-    # def round_up(self, dt: datetime):
-    #     if dt.month == 12:
-    #         return self.reset(dt, year=dt.year+1, month=self._field_range_min('month'))
-    #     else:
-    #         return self.reset(dt, month=dt.month+1)
     
 
 class MonthCronFieldType(CronFieldType):
