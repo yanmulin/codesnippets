@@ -1,7 +1,7 @@
-package io.yanmulin.onebrc;
+package io.yanmulin.onebrc.v1;
 
-import dev.morling.onebrc.support.*;
 
+import io.yanmulin.onebrc.support.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
  * @author Lyuwen Yan
  * @date
  */
-public class BytesHash {
-
+public class PooledChunk {
     private final static int N_THREADS = 32;
     private final static int BUFFER_SIZE = 8192;
     private final static String PATH = "./measurements.txt";
@@ -56,23 +55,12 @@ public class BytesHash {
         return (float) sign * x / divider;
     }
 
-    private static int hashCode(byte[] a, int fromIndex, int toIndex) {
-        int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
-            result = 31 * result + a[i];
-        }
-        return result;
-    }
-
     private static void doLine(Chunk chunk, int pos, int lineStart, int semicolonPos,
-                               Map<Integer, ThreadResultRow> aggregate) {
-        int hash = hashCode(chunk.buffer, lineStart, semicolonPos);
+                               Map<String, ThreadResultRow> aggregate) {
+        String city = new String(chunk.buffer, lineStart, semicolonPos - lineStart);
         float temperature = parseFloat(chunk.buffer, semicolonPos + 1, pos);
-        aggregate.compute(hash, (_, row) -> {
-            if (row == null) {
-                String city = new String(chunk.buffer, lineStart, semicolonPos - lineStart);
-                row = new ThreadResultRow(city);
-            }
+        aggregate.compute(city, (_, row) -> {
+            row = row == null ? new ThreadResultRow(city) : row;
             row.min = Math.min(row.min, temperature);
             row.max = Math.max(row.max, temperature);
             row.sum += temperature;
@@ -81,7 +69,7 @@ public class BytesHash {
         });
     }
 
-    private static void doChunk(Map<Integer, ThreadResultRow> aggregate, Chunk chunk) {
+    private static void doChunk(Map<String, ThreadResultRow> aggregate, Chunk chunk) {
         int lineStart = 0, semicolonPos = 0;
 
         for (int i=0;i<chunk.size;i++) {
@@ -107,7 +95,7 @@ public class BytesHash {
         for (int i=0;i<N_THREADS;i++) {
             threads[i] = new Thread(() -> {
                 ObjectPool.PooledObject<Chunk> chunk;
-                Map<Integer, ThreadResultRow> aggregate = new HashMap<>();
+                Map<String, ThreadResultRow> aggregate = new HashMap<>();
                 do {
                     try {
                         chunk = input.take();
@@ -181,11 +169,11 @@ public class BytesHash {
         }
 
         Map<String, ResultRow> result = new TreeMap<>(rows.stream()
-                .collect(Collectors.groupingBy(row -> row.city, collector)));
+                .collect(Collectors.groupingBy(r -> r.city, collector)));
         System.out.println(result);
 
         long elapsed = System.currentTimeMillis() - start;
-        int records = rows.stream().mapToInt(row -> row.count).sum();
+        int records = rows.stream().mapToInt(r -> r.count).sum();
         System.out.println("read " + bytes + " bytes/" + chunks + " chunks");
         System.out.println("created " + CHUNK_FACTORY.countCreated() + " chunks");
         System.out.println("copied " + copy + " bytes");
@@ -193,3 +181,4 @@ public class BytesHash {
         System.out.println("total " + records + " records");
     }
 }
+

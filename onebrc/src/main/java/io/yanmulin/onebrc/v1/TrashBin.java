@@ -1,10 +1,7 @@
-package io.yanmulin.onebrc;
+package io.yanmulin.onebrc.v1;
 
-import dev.morling.onebrc.support.AggregateMeasurement;
-import dev.morling.onebrc.support.Chunk;
-import dev.morling.onebrc.support.ResultRow;
-import dev.morling.onebrc.support.ThreadResultRow;
 
+import io.yanmulin.onebrc.support.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;

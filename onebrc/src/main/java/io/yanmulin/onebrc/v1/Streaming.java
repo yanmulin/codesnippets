@@ -1,6 +1,6 @@
-package io.yanmulin.onebrc;
+package io.yanmulin.onebrc.v1;
 
-import dev.morling.onebrc.support.*;
+import io.yanmulin.onebrc.support.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,7 +14,8 @@ import java.util.stream.Collectors;
  * @author Lyuwen Yan
  * @date
  */
-public class PooledChunk {
+public class Streaming {
+
     private final static int N_THREADS = 32;
     private final static int BUFFER_SIZE = 8192;
     private final static String PATH = "./measurements.txt";
@@ -40,49 +41,65 @@ public class PooledChunk {
             agg -> new ResultRow(agg.min, agg.sum / agg.count, agg.max)
     );
 
-    private static float parseFloat(byte[] buffer, int start, int end) {
-        int x = 0, divider = 0, sign = 1;
-        for (int i=start;i<end;i++) {
-            if (buffer[i] == 45) {
+    private static class LineContext {
+        int current = 0;
+        int size = 0;
+        float temperature = 0.f;
+        int lineStart = 0;
+        int cityNameLength = 0;
+        Integer cityHash = 0;
+    }
+
+    private static void parseCity(byte[] buffer, LineContext context) {
+        int hash = 1, pos;
+        pos = context.lineStart = context.current;
+        while (pos < context.size && buffer[pos] != ';') {
+            hash = 31 * hash + buffer[pos];
+            pos ++;
+        }
+
+        context.cityNameLength = pos - context.lineStart;
+        context.current = pos + 1;
+        context.cityHash = hash;
+    }
+
+    private static void parseTemperature(byte[] buffer, LineContext context) {
+        int x = 0, divider = 0, sign = 1, pos;
+
+        for (pos=context.current; pos < context.size && buffer[pos] != '\n'; pos ++) {
+            if (buffer[pos] == 45) {
                 sign = -1;
-            } else if (buffer[i] == 46) {
+            } else if (buffer[pos] == 46) {
                 divider = 1;
             } else {
-                x = (x * 10) + (buffer[i] - 48);
+                x = (x * 10) + (buffer[pos] - 48);
                 if (divider > 0) divider *= 10;
             }
         }
-        return (float) sign * x / divider;
+        context.current = pos + 1;
+        context.temperature = (float)sign * x / divider;
     }
 
-    private static void doLine(Chunk chunk, int pos, int lineStart, int semicolonPos,
-                               Map<String, ThreadResultRow> aggregate) {
-        String city = new String(chunk.buffer, lineStart, semicolonPos - lineStart);
-        float temperature = parseFloat(chunk.buffer, semicolonPos + 1, pos);
-        aggregate.compute(city, (_, row) -> {
-            row = row == null ? new ThreadResultRow(city) : row;
-            row.min = Math.min(row.min, temperature);
-            row.max = Math.max(row.max, temperature);
-            row.sum += temperature;
-            row.count += 1;
-            return row;
+    private static void doLine(byte[] buffer, LineContext context, Map<Integer, ThreadResultRow> aggregate) {
+        parseCity(buffer, context);
+        parseTemperature(buffer, context);
+        ThreadResultRow row = aggregate.computeIfAbsent(context.cityHash, (_) -> {
+            String city = new String(buffer, context.lineStart, context.cityNameLength);
+            return new ThreadResultRow(city);
         });
+
+        float temperature = context.temperature;
+        row.min = Math.min(row.min, temperature);
+        row.max = Math.max(row.max, temperature);
+        row.sum += temperature;
+        row.count += 1;
     }
 
-    private static void doChunk(Map<String, ThreadResultRow> aggregate, Chunk chunk) {
-        int lineStart = 0, semicolonPos = 0;
-
-        for (int i=0;i<chunk.size;i++) {
-            if (chunk.buffer[i] == ';') {
-                semicolonPos = i;
-            } else if (chunk.buffer[i] == '\n') {
-                doLine(chunk, i, lineStart, semicolonPos, aggregate);
-                lineStart = i + 1;
-            }
-        }
-
-        if (lineStart != chunk.size) {
-            doLine(chunk, chunk.size, lineStart, semicolonPos, aggregate);
+    private static void doChunk(Map<Integer, ThreadResultRow> aggregate, Chunk chunk) {
+        LineContext context = new LineContext();
+        context.size = chunk.size;
+        while (context.current < chunk.size) {
+            doLine(chunk.buffer, context, aggregate);
         }
     }
 
@@ -95,7 +112,7 @@ public class PooledChunk {
         for (int i=0;i<N_THREADS;i++) {
             threads[i] = new Thread(() -> {
                 ObjectPool.PooledObject<Chunk> chunk;
-                Map<String, ThreadResultRow> aggregate = new HashMap<>();
+                Map<Integer, ThreadResultRow> aggregate = new HashMap<>();
                 do {
                     try {
                         chunk = input.take();
@@ -169,11 +186,11 @@ public class PooledChunk {
         }
 
         Map<String, ResultRow> result = new TreeMap<>(rows.stream()
-                .collect(Collectors.groupingBy(r -> r.city, collector)));
+                .collect(Collectors.groupingBy(row -> row.city, collector)));
         System.out.println(result);
 
         long elapsed = System.currentTimeMillis() - start;
-        int records = rows.stream().mapToInt(r -> r.count).sum();
+        int records = rows.stream().mapToInt(row -> row.count).sum();
         System.out.println("read " + bytes + " bytes/" + chunks + " chunks");
         System.out.println("created " + CHUNK_FACTORY.countCreated() + " chunks");
         System.out.println("copied " + copy + " bytes");
@@ -181,4 +198,3 @@ public class PooledChunk {
         System.out.println("total " + records + " records");
     }
 }
-

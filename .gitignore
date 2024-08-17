@@ -8,6 +8,7 @@
 .mvn
 __pycache__
 target
+*.html
 
 ### IntelliJ IDEA ###
 **/.idea/modules.xml

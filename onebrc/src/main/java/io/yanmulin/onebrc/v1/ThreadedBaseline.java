@@ -1,4 +1,6 @@
-package io.yanmulin.onebrc;
+package io.yanmulin.onebrc.v1;
+
+import io.yanmulin.onebrc.support.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,36 +16,16 @@ import java.util.stream.Collectors;
  */
 public class ThreadedBaseline {
 
-    record Measurement(String city, float temperature) {
-        static Measurement of(String line) {
-            String[] comps = line.split(";");
-            return new Measurement(comps[0], Float.parseFloat(comps[1]));
-        }
-    }
-
-    static class AggregateMeasurement {
-        float min = Float.MAX_VALUE;
-        float max = Float.MIN_VALUE;
-        float sum = 0f;
-        int count = 0;
-    }
-
-    record ResultRow(float min, float mean, float max) {
-        @Override
-        public String toString() {
-            return "%.1f/%.1f/%.1f".formatted(min, mean, max);
-        }
-    }
-
     private final static String PATH = "./measurements.txt";
 
     public static void main(String[] args) throws IOException {
+        long start = System.currentTimeMillis();
         Collector<Measurement, AggregateMeasurement, ResultRow> collector = Collector.of(
                 AggregateMeasurement::new,
                 (agg, m) -> {
-                    agg.max = Math.max(agg.max, m.temperature);
-                    agg.min = Math.min(agg.min, m.temperature);
-                    agg.sum += m.temperature;
+                    agg.max = Math.max(agg.max, m.temperature());
+                    agg.min = Math.min(agg.min, m.temperature());
+                    agg.sum += m.temperature();
                     agg.count += 1;
                 },
                 (agg1, agg2) -> {
@@ -61,5 +43,8 @@ public class ThreadedBaseline {
                 .parallel().map(Measurement::of)
                 .collect(Collectors.groupingBy(Measurement::city, collector)));
         System.out.println(collect);
+
+        long elapsed = System.currentTimeMillis() - start;
+        System.out.println("elapsed " + elapsed + " milliseconds");
     }
 }
