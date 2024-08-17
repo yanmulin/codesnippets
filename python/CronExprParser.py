@@ -16,6 +16,7 @@ class ChronoUtils:
 
     @staticmethod
     def _is_leap_year(year):
+        if year % 1000 == 0: return True
         if year % 100 == 0: return False
         if year % 4 == 0: return True
         return False
@@ -297,6 +298,7 @@ class CronExpression:
     ZERO_SECONDS_CRON_FIELD = CronField.parse_seconds('0')
 
     def __init__(self, expression):
+        self.expression = expression
         self.fields = self._parse_fields(expression)
     
     def next(self, dt = None):
@@ -330,7 +332,6 @@ class CronExpression:
         if expression is None:
             raise ValueError('invalid expression(None) ')
         return cls(expression)
-
 
 
 class CronFieldTypeTest(unittest.TestCase):
@@ -542,14 +543,14 @@ class CronExpressionTests(unittest.TestCase):
         self._test_expression(expr, '2024-02-01 15:34:00', '2024-02-29 15:35:00')
         self._test_expression(expr, '2023-02-01 15:34:00', '2024-02-29 15:35:00')
         self._test_expression(expr, '2020-03-01 15:34:00', '2024-02-29 15:35:00')
-        self._test_expression(expr, '2000-01-01 15:34:00', '2004-02-29 15:35:00')
+        self._test_expression(expr, '1900-01-01 15:34:00', '1904-02-29 15:35:00')
+        self._test_expression(expr, '2000-01-01 15:34:00', '2000-02-29 15:35:00')
 
         expr = CronExpression.parse('35 15 29 2 4')
         self._test_expression(expr, '2024-01-01 15:34:00', '2036-02-29 15:35:00')
 
     def test_step(self):
         expr = CronExpression.parse('*/4 5 * * *')
-        expected = ('2024-01-02 05:00:00', '2024-01-02 05:04:00')
         last = '2024-01-01 15:34:00'
         last = self._test_expression(expr, last, '2024-01-02 05:00:00')
         last = self._test_expression(expr, last, '2024-01-02 05:04:00')
