@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>examples</module>
+        <module>benchmark</module>
         <module>spi-logger-api</module>
         <module>spi-logger-console-impl</module>
         <module>spi-logger-file-impl</module>
