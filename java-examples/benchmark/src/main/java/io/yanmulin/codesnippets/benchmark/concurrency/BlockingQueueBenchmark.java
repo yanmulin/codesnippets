@@ -1,4 +1,4 @@
-package io.yanmulin.codesnippets.benchmark;
+package io.yanmulin.codesnippets.benchmark.concurrency;
 
 import org.openjdk.jmh.annotations.*;
 
