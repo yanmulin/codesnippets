@@ -33,7 +33,7 @@ public class LogWriter {
     }
 
     private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-    private final PrintWriter writer = new PrintWriter("my.log");
+    private final PrintWriter writer = new PrintWriter("my.log"); // thread safe
     private final LoggerThread thread = new LoggerThread();
     private boolean isShutdown = false;
     private int reservations = 0;
